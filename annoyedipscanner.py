@@ -242,33 +242,42 @@ if __name__ == "__main__":
     ipFound = []            #for recording found IPs
     ipFree = []             #for recording potentially free IPs
     portsToScan = []        #the list of ports to scan
-    compIndexFullScan = ''
-    portFound = []
+    compIndexFullScan = ''  #list index of the IP to do a full scan on
+    portFound = []          
     portFree = []
 
-    #one-time tasks
-    printHeader() 
+    #Part 1 - do the tasks that are one-time tasks first
+    printHeader()                   #print a short header
     parmChecks(first, last, subnet) #check the input parameters, ensure they're all in bounds
     hosts = range(first,last+1)     #build the range of hosts in the host octet
     subnet+='.'                     #add the last dot to the subnet for building IP addresses
     portsToScan = buildPortList(args['p'], args['g'], args['f'], args['l']) #build port list with args
+
+    #Part 2 - see if we can quickly
+    #weed out hosts that reply to a ping sweep
     pingSweep(subnet, hosts, ipFree, ipFound)
-    
+
+    #if the -p switch was given on the command line the ping sweep is all that's we're doing to find live hosts
+    #skip the TCP connection scan, otherwise call the scan ports function with the IPs to check
     if args['p'] == False:
         print("[+]Checking " + str(len(ipFree)) + " hosts that did not respond to ICMP requests\n")
         for ipAdx in ipFree:
             scanPorts(ipAdx, portsToScan, ipFree, ipFound)
 
-    #print results
+    #print results for both a list of IPs that were found to be live and the ones that did not respond to
+    #ICMP requests or TCP connections
     freePrint(ipFound, 1)
     freePrint(ipFree, 0)
 
+    #print the time it took to do everything so far
     end = time.time()
     print('Time taken in seconds : ', end - start)
 
     # TODO: add while loop to allow the user to deep scan multiple hosts
     #       one at a time until the user exits
-    #do a deep scan if the user wants
+
+    #do a deep scan if the user wants, ask the user and return the value of the index
+    #if it's zero, the program exits, otherwise call for the full scan
     compIndexFullScan = pickListDoFullScan(len(ipFree))
     if (int(compIndexFullScan)==0):
         print('\n\nGoodbye\n\n')
