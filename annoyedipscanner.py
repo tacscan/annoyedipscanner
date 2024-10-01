@@ -82,10 +82,6 @@ def buildPortList(pingOnly, portDepth, firstPort, lastPort, portFile, fileType):
             if portDepth == 'fast':
                 pts = [21, 22, 23, 25, 53, 80, 110, 139, 443, 445, 3389]
                 print('[+]Testing with the 11 default Nmap ports')
-            if portDepth == 'seq':
-                print('[+]Testing sequential ports from ' + firstPort + ' to ' + lastPort + ' inclusive')
-                for x in range(1,1024):
-                    pts.append(x)
             if portDepth == None:
                 print('[+]Testing with the 11 default Nmap ports')
                 pts = [21, 22, 23, 25, 53, 80, 110, 139, 443, 445, 3389]
