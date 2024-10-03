@@ -78,17 +78,18 @@ def printPortList(portPrint):
 
     for a in range(0, len(portPrint)):
         temp.append(portPrint[a])
-
-    for x in range(0, 9-leftOvers):
-        temp.append('     ')
-
+    if(leftOvers != 0):
+        for x in range(0, 9-leftOvers):
+            temp.append('     ')
+    print('     +-------+-------+-------+-------+-------+-------+-------+-------+-------+')
+    print('     |              Here are the ports I read in from the file               |')
     print('     +-------+-------+-------+-------+-------+-------+-------+-------+-------+')
     print('     | ', end='') #print the start of each new line
   
     for offset in range(0, len(temp)):
         print(' ' * (5 - len(str(temp[offset]))) + str(temp[offset]) + ' | ', end='')
         
-        if((offset+1)%9 == 0):
+        if((offset+1)%9 == 0) and offset <= len(temp):
             print('\n     +-------+-------+-------+-------+-------+-------+-------+-------+-------+')
             if(offset != len(temp)-1):
                 print('     | ', end='')
@@ -121,12 +122,11 @@ def buildPortList(pingOnly, portDepth, firstPort, lastPort, portFile, fileType):
                     for x in range(0, len(temp)):                               #for each one check if it's:
                         if temp[x].strip().isdigit():                           #1) a number and 
                             if (int(temp[x]) > 0) and (int(temp[x]) < 65535):   #2) a valid port number
-                                pts.append(temp[x].strip())                #if it passes those checks add it to the list
+                                pts.append(int(temp[x].strip()))                #if it passes those checks add it to the list
                     if(len(pts)==0):
                         print('[!] ' + portFile + ' is empty. Quitting.')
                         quit()
-                    print('The ports to be tested from the input file are:')
-                    print(pts)
+                    printPortList(pts)
                     cont = input('Press 0 (zero) to quit, anything else to continue : ')
                     if cont == '0':
                         quit()
@@ -143,7 +143,6 @@ def buildPortList(pingOnly, portDepth, firstPort, lastPort, portFile, fileType):
                     if(len(pts)==0):
                         print('[!] ' + portFile + ' is empty. Quitting.')
                         quit()
-                    print('The ports to be tested from the input file are:')
                     printPortList(pts)
                     cont = input('Press 0 (zero) to quit, anything else to continue : ')
                     if cont == '0':
