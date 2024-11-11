@@ -8,6 +8,7 @@ import concurrent.futures
 import socket
 import argparse
 import math
+import ipaddress
 
 parser = argparse.ArgumentParser(prog='Annoyed IP Scanner', description='Scan a network for unused IP addresses')
 parser.add_argument('-s', help='Subnet in the form of A.B.C', required=True)
@@ -23,9 +24,9 @@ args = vars(parser.parse_args())
 # Print the header
 ####################
 def printHeader():
-    print('\n[*][*][*][*][*][*][*][*][*][*][*][*][*][*][*]')
-    print('[*]  Annoyed IP Scanner - Sean Hall 2024  [*]')
-    print('[*][*][*][*][*][*][*][*][*][*][*][*][*][*][*]\n')
+    print('\n[*][*][*][*][*][*][*][*][*][*][*][*][*][*][*][*]')
+    print('[*] Annoyed IP Scanner - Sean Hall 2024 v1.1 [*]')
+    print('[*][*][*][*][*][*][*][*][*][*][*][*][*][*][*][*]\n')
     print(' ')
 
 ##############################################################################################################
@@ -196,12 +197,31 @@ def tcpSweep(ipFreeList, index, portFreeList, portFoundList):
 # otherwise it's added to the free list
 ##############################################################################################################
 def pingHost(ipAddx, pingFree, pingFound):
-    output = subprocess.run(["ping", "-n", "1", "-w", "100", ipAddx], stdout=subprocess.PIPE) 
-    if str(output).find("Lost = 0") >= 0:
+    #output = subprocess.run(["ping", "-n", "1", "-w", "100", ipAddx], stdout=subprocess.PIPE)
+    #output = subprocess.run(["ping", "-n", "3", ipAddx], stdout=subprocess.PIPE) 
+    #if str(output).find("Lost = 0") >= 0:
+
+    confidence = 0
+
+    for x in range(4):
+        result = subprocess.run(["ping", "-n", "1", ipAddx], stdout=subprocess.PIPE)
+        #There's some placeholder code here that does nothing but filter responses
+        if "request timed out" in str(result.stdout).lower():
+            confidence=confidence+0
+        elif "destination host unreachable" in str(result.stdout).lower():
+            confidence=confidence+0
+        elif "general failure" in str(result.stdout).lower():
+            confidence=confidence+0
+        elif "network is unreachable" in str(result.stdout).lower():
+            confidence=confidence+0
+        else:
+            confidence=confidence+1
+
+    if (confidence>0):
         pingFound.append(ipAddx)
     else:
         pingFree.append(ipAddx)
-        
+
 ##################################################
 # Scan ports in a list using multiple threads
 ##################################################
@@ -234,7 +254,7 @@ def scanPort(ip, port, tcpFound, tcpFree):
         print(f"Error scanning port {port}: {e}")
 
 ##################################################
-# Function print a table of free IPs
+# Function prints a table of free IPs
 ##################################################
 def freePrint(ipPrint, title):
     rows = math.floor(len(ipPrint)/3)
@@ -344,11 +364,15 @@ if __name__ == "__main__":
         print("[+]Checking " + str(len(ipFree)) + " hosts that did not respond to ICMP requests\n")
         for ipAdx in ipFree:
             scanPorts(ipAdx, portsToScan, ipFree, ipFound)
+            
+    ipFound=sorted(ipFound, key=ipaddress.ip_address)
+    ipFree=sorted(ipFree, key=ipaddress.ip_address)
 
     #print results for both a list of IPs that were found to be live and the ones that did not respond to
     #ICMP requests or TCP connections
     freePrint(ipFound, 1)
     freePrint(ipFree, 0)
+
 
     #print the time it took to do everything so far
     end = time.time()
